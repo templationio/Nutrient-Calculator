@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notion Macro Calculator Widget</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+    /* CSS Variables for Dark Theme (Default) */
+    :root {
+      --bg-color: #191919;
+      --text-color: #ffffff;
+      --card-bg: rgba(255, 255, 255, 0.04);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --card-shadow: rgba(0, 0, 0, 0.2);
+      
+      --input-bg: rgba(255, 255, 255, 0.05);
+      --input-border: rgba(255, 255, 255, 0.15);
+      --input-focus: rgba(255, 255, 255, 0.25);
+      
+      --btn-bg: rgba(255, 255, 255, 0.1);
+      --btn-hover: rgba(255, 255, 255, 0.15);
+      
+      --blob-opacity: 0.5;
+    }
+
+    /* CSS Variables for Light Theme */
+    body.light-theme {
+      --bg-color: #ffffff;
+      --text-color: #37352f;
+      --card-bg: rgba(255, 255, 255, 0.5);
+      --card-border: rgba(0, 0, 0, 0.08);
+      --card-shadow: rgba(0, 0, 0, 0.06);
+      
+      --input-bg: rgba(0, 0, 0, 0.03);
+      --input-border: rgba(0, 0, 0, 0.08);
+      --input-focus: rgba(0, 0, 0, 0.15);
+      
+      --btn-bg: rgba(0, 0, 0, 0.05);
+      --btn-hover: rgba(0, 0, 0, 0.08);
+      
+      --blob-opacity: 0.3;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+
+    .widget-container {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* --- GLASSMORPHIC CARD --- */
+    .card {
+      position: relative; 
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      width: 260px;
+      min-height: 380px;
+      box-shadow: 0 8px 32px 0 var(--card-shadow);
+      transition: all 0.4s ease;
+      overflow: hidden;
+    }
+
+    /* --- LIQUID BACKGROUND (INSIDE CARD) --- */
+    .card-background {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit; 
+      overflow: hidden; 
+      z-index: 0;
+    }
+
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(40px);
+      opacity: var(--blob-opacity);
+      animation: float 10s infinite alternate ease-in-out;
+      transition: opacity 0.4s ease;
+    }
+
+    /* Цвета подобраны по референсу (спокойные фиолетово-синие оттенки) */
+    .blob-1 {
+      width: 180px; height: 180px;
+      background: #8A2BE2; /* Soft Violet */
+      top: -30px; left: -40px;
+    }
+    .blob-2 {
+      width: 200px; height: 200px;
+      background: #4169E1; /* Royal Blue */
+      bottom: -40px; right: -40px;
+      animation-delay: -3s;
+    }
+    .blob-3 {
+      width: 140px; height: 140px;
+      background: #DA70D6; /* Orchid Pink */
+      bottom: 20%; left: -20px;
+      animation-delay: -6s;
+    }
+
+    @keyframes float {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(20px, -20px) scale(1.1); }
+    }
+
+    /* --- CONTROLS --- */
+    .theme-toggle {
+      position: absolute;
+      top: 14px; right: 14px;
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: var(--btn-bg);
+      border: 1px solid var(--input-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; cursor: pointer;
+      transition: all 0.3s ease;
+      color: var(--text-color);
+      z-index: 10;
+    }
+    .theme-toggle:hover {
+      background: var(--btn-hover);
+      transform: scale(1.1);
+    }
+
+    /* --- VIEWS --- */
+    .view {
+      position: absolute;
+      inset: 0;
+      padding: 45px 24px 20px;
+      display: flex;
+      flex-direction: column;
+      z-index: 1;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      opacity: 0; pointer-events: none; transform: translateX(20px);
+    }
+    .view.active {
+      opacity: 1; pointer-events: all; transform: translateX(0);
+    }
+    .view.previous {
+      transform: translateX(-20px);
+    }
+
+    .title {
+      font-size: 15px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 1px; text-align: center; margin-bottom: 16px; opacity: 0.9;
+    }
+
+    /* --- FORM ELEMENTS --- */
+    .input-group {
+      display: flex; gap: 8px; margin-bottom: 10px; width: 100%;
+    }
+    .input-field {
+      width: 100%; background: var(--input-bg);
+      border: 1px solid var(--input-border); color: var(--text-color);
+      padding: 10px 12px; border-radius: 12px; font-family: inherit; font-size: 12px;
+      outline: none; transition: all 0.3s ease;
+    }
+    .input-field:focus { border-color: var(--input-focus); background: var(--btn-bg); }
+    .input-field::placeholder { color: var(--text-color); opacity: 0.4; }
+    
+    select.input-field { appearance: none; cursor: pointer; }
+    
+    .btn {
+      width: 100%; background: var(--btn-bg); border: 1px solid var(--input-border);
+      color: var(--text-color); padding: 12px; border-radius: 12px;
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.3s ease; margin-top: auto;
+    }
+    .btn:hover { background: var(--btn-hover); }
+    .btn.outline { background: transparent; font-weight: 400; padding: 8px; margin-top: 10px;}
+
+    /* --- RESULTS UI --- */
+    .goal-tabs {
+      display: flex; background: var(--input-bg); border-radius: 10px; padding: 4px; margin-bottom: 16px;
+    }
+    .goal-tab {
+      flex: 1; text-align: center; padding: 6px 0; font-size: 11px; font-weight: 500;
+      cursor: pointer; border-radius: 8px; transition: background 0.3s; opacity: 0.6;
+    }
+    .goal-tab.active { background: var(--btn-bg); opacity: 1; box-shadow: 0 2px 8px var(--card-shadow); }
+
+    .chart-container {
+      position: relative; width: 140px; height: 140px; margin: 0 auto 16px;
+    }
+    .chart-center-text {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; pointer-events: none;
+    }
+    .cal-number { font-size: 24px; font-weight: 600; line-height: 1; }
+    .cal-label { font-size: 10px; opacity: 0.6; margin-top: 4px; }
+
+    .macros-legend {
+      display: flex; justify-content: space-between; margin-bottom: 16px;
+    }
+    .macro-item { display: flex; flex-direction: column; align-items: center; }
+    .macro-dot { width: 8px; height: 8px; border-radius: 50%; margin-bottom: 4px; }
+    .macro-val { font-size: 12px; font-weight: 600; }
+    .macro-name { font-size: 10px; opacity: 0.6; }
+
+    .footer {
+      font-size: 10px; font-weight: 300; opacity: 0.5; text-align: center;
+      position: absolute; bottom: 20px; left: 0; right: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="widget-container">
+    <div class="card">
+      <div class="card-background">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+      </div>
+
+      <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
+
+      <div class="view active" id="view-input">
+        <div class="title">Calculator</div>
+        
+        <div class="input-group">
+          <select id="gender" class="input-field">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+          <input type="number" id="age" class="input-field" placeholder="Age" min="15" max="100">
+        </div>
+        
+        <div class="input-group">
+          <input type="number" id="weight" class="input-field" placeholder="Weight (kg)">
+          <input type="number" id="height" class="input-field" placeholder="Height (cm)">
+        </div>
+
+        <select id="activity" class="input-field" style="margin-bottom: 16px;">
+          <option value="1.2">Sedentary (Office job)</option>
+          <option value="1.375">Light Exercise (1-2 days/wk)</option>
+          <option value="1.55">Moderate (3-5 days/wk)</option>
+          <option value="1.725">Active (6-7 days/wk)</option>
+        </select>
+
+        <button class="btn" onclick="calculate()">Calculate</button>
+        <div class="footer">Powered by templation.io</div>
+      </div>
+
+      <div class="view" id="view-result">
+        <div class="goal-tabs">
+          <div class="goal-tab" id="tab-loss" onclick="setGoal('loss')">Loss</div>
+          <div class="goal-tab active" id="tab-maintain" onclick="setGoal('maintain')">Maintain</div>
+          <div class="goal-tab" id="tab-gain" onclick="setGoal('gain')">Gain</div>
+        </div>
+
+        <div class="chart-container">
+          <canvas id="macroChart"></canvas>
+          <div class="chart-center-text">
+            <div class="cal-number" id="cals-val">0</div>
+            <div class="cal-label">KCAL</div>
+          </div>
+        </div>
+
+        <div class="macros-legend">
+          <div class="macro-item">
+            <div class="macro-dot" style="background: #8A2BE2;"></div>
+            <div class="macro-val" id="carb-val">0g</div>
+            <div class="macro-name">Carbs</div>
+          </div>
+          <div class="macro-item">
+            <div class="macro-dot" style="background: #4169E1;"></div>
+            <div class="macro-val" id="pro-val">0g</div>
+            <div class="macro-name">Protein</div>
+          </div>
+          <div class="macro-item">
+            <div class="macro-dot" style="background: #DA70D6;"></div>
+            <div class="macro-val" id="fat-val">0g</div>
+            <div class="macro-name">Fats</div>
+          </div>
+        </div>
+
+        <button class="btn outline" onclick="showInput()">Recalculate</button>
+        <div class="footer" style="bottom: 12px;">Powered by templation.io</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // --- THEME LOGIC ---
+    let isLightMode = localStorage.getItem('notion-macro-theme') === 'light';
+    const chartColors = {
+      carbs: '#8A2BE2', // Violet
+      protein: '#4169E1', // Royal Blue
+      fats: '#DA70D6' // Orchid Pink
+    };
+
+    function applyTheme() {
+      document.body.classList.toggle('light-theme', isLightMode);
+      document.getElementById('theme-btn').textContent = isLightMode ? '🌙' : '☀️';
+    }
+
+    window.toggleTheme = function() {
+      isLightMode = !isLightMode;
+      localStorage.setItem('notion-macro-theme', isLightMode ? 'light' : 'dark');
+      applyTheme();
+    };
+    applyTheme();
+
+    // --- CALCULATOR LOGIC ---
+    let baseTDEE = 0;
+    let currentGoal = 'maintain';
+    let macroChartInstance = null;
+
+    function showView(viewId) {
+      document.querySelectorAll('.view').forEach(v => {
+        v.classList.remove('active', 'previous');
+        if (v.id !== viewId) v.classList.add('previous');
+      });
+      document.getElementById(viewId).classList.add('active');
+      document.getElementById(viewId).classList.remove('previous');
+    }
+
+    window.showInput = () => showView('view-input');
+
+    window.calculate = function() {
+      const age = parseFloat(document.getElementById('age').value);
+      const weight = parseFloat(document.getElementById('weight').value);
+      const height = parseFloat(document.getElementById('height').value);
+      const gender = document.getElementById('gender').value;
+      const activity = parseFloat(document.getElementById('activity').value);
+
+      if (!age || !weight || !height) {
+        alert("Please fill in age, weight, and height.");
+        return;
+      }
+
+      // Mifflin-St Jeor Equation
+      let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+      bmr += (gender === 'male') ? 5 : -161;
+      
+      baseTDEE = Math.round(bmr * activity);
+      
+      setGoal('maintain'); // Default goal
+      showView('view-result');
+    };
+
+    window.setGoal = function(goal) {
+      currentGoal = goal;
+      
+      // Update UI Tabs
+      document.querySelectorAll('.goal-tab').forEach(tab => tab.classList.remove('active'));
+      document.getElementById(`tab-${goal}`).classList.add('active');
+
+      // Adjust Calories
+      let targetCals = baseTDEE;
+      if (goal === 'loss') targetCals -= 500; // Moderate deficit
+      if (goal === 'gain') targetCals += 300; // Lean bulk surplus
+
+      document.getElementById('cals-val').textContent = targetCals;
+
+      // Calculate Macros (Standard balanced split: 40% C, 30% P, 30% F)
+      const carbsCals = targetCals * 0.40;
+      const proteinCals = targetCals * 0.30;
+      const fatsCals = targetCals * 0.30;
+
+      const carbsGrams = Math.round(carbsCals / 4);
+      const proteinGrams = Math.round(proteinCals / 4);
+      const fatsGrams = Math.round(fatsCals / 9);
+
+      document.getElementById('carb-val').textContent = `${carbsGrams}g`;
+      document.getElementById('pro-val').textContent = `${proteinGrams}g`;
+      document.getElementById('fat-val').textContent = `${fatsGrams}g`;
+
+      updateChart(carbsGrams, proteinGrams, fatsGrams);
+    };
+
+    function updateChart(c, p, f) {
+      const ctx = document.getElementById('macroChart').getContext('2d');
+      
+      if (macroChartInstance) {
+        macroChartInstance.data.datasets[0].data = [c, p, f];
+        macroChartInstance.update();
+        return;
+      }
+
+      Chart.defaults.color = isLightMode ? '#37352f' : '#ffffff';
+      Chart.defaults.font.family = "'Inter', sans-serif";
+
+      macroChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Carbs', 'Protein', 'Fats'],
+          datasets: [{
+            data: [c, p, f],
+            backgroundColor: [chartColors.carbs, chartColors.protein, chartColors.fats],
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '75%', // Толщина кольца
+          plugins: {
+            legend: { display: false }, // Отключаем стандартную легенду (мы сделали свою)
+            tooltip: {
+              backgroundColor: isLightMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.8)',
+              titleColor: isLightMode ? '#000' : '#fff',
+              bodyColor: isLightMode ? '#000' : '#fff',
+              padding: 10,
+              displayColors: true,
+              callbacks: {
+                label: function(context) { return ` ${context.label}: ${context.raw}g`; }
+              }
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
