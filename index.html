@@ -3,22 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notion Macro Calculator Widget</title>
+  <title>Calories Calculator</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 
-    /* CSS Variables for Dark Theme (Default) */
     :root {
       --bg-color: #191919;
       --text-color: #ffffff;
       
-      /* Card Glassmorphism */
       --card-bg: rgba(255, 255, 255, 0.04);
       --card-border: rgba(255, 255, 255, 0.1);
       --card-shadow: rgba(0, 0, 0, 0.2);
       
-      /* Inputs & Buttons */
       --input-bg: rgba(255, 255, 255, 0.05);
       --input-border: rgba(255, 255, 255, 0.12);
       --input-focus: rgba(255, 255, 255, 0.25);
@@ -26,12 +23,10 @@
       --btn-bg: rgba(255, 255, 255, 0.1);
       --btn-hover: rgba(255, 255, 255, 0.15);
       
-      /* Dropdown Menu Glassmorphism */
       --dropdown-bg: rgba(30, 30, 30, 0.6);
       --blob-opacity: 0.5;
     }
 
-    /* CSS Variables for Light Theme */
     body.light-theme {
       --bg-color: #ffffff;
       --text-color: #37352f;
@@ -75,7 +70,6 @@
       justify-content: center;
     }
 
-    /* --- GLASSMORPHIC CARD --- */
     .card {
       position: relative; 
       background: var(--card-bg);
@@ -89,7 +83,6 @@
       transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* --- LIQUID BACKGROUND (INSIDE CARD) --- */
     .card-background {
       position: absolute;
       inset: 0;
@@ -130,7 +123,6 @@
       100% { transform: translate(25px, -25px) scale(1.15) rotate(10deg); }
     }
 
-    /* --- CONTROLS --- */
     .theme-toggle {
       position: absolute;
       top: 18px; right: 18px;
@@ -149,7 +141,6 @@
       transform: scale(1.1) rotate(15deg);
     }
 
-    /* --- VIEWS --- */
     .view {
       position: absolute;
       inset: 0;
@@ -172,7 +163,6 @@
       letter-spacing: 1.5px; text-align: center; margin-bottom: 24px; opacity: 0.9;
     }
 
-    /* --- FORM ELEMENTS --- */
     .input-group {
       display: flex; gap: 12px; margin-bottom: 12px; width: 100%;
     }
@@ -192,7 +182,6 @@
     }
     input[type=number] { -moz-appearance: textfield; }
 
-    /* --- CUSTOM SELECT (GLASSMORPHIC DROPDOWN) --- */
     .custom-select {
       position: relative;
       width: 100%;
@@ -230,7 +219,6 @@
     .select-items div:hover { background: var(--btn-hover); }
     .select-hide { display: none; opacity: 0; }
 
-    /* --- BUTTONS & FOOTER --- */
     .btn {
       width: 100%; background: var(--btn-bg); border: 1px solid var(--input-border);
       color: var(--text-color); padding: 14px; border-radius: 14px;
@@ -253,7 +241,6 @@
       opacity: 0; transition: opacity 0.3s; pointer-events: none;
     }
 
-    /* --- RESULTS UI --- */
     .goal-tabs {
       display: flex; background: var(--input-bg); border-radius: 14px; padding: 6px; margin-bottom: 24px;
       position: relative; gap: 4px; border: 1px solid var(--input-border);
@@ -290,7 +277,7 @@
       <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
 
       <div class="view active" id="view-input">
-        <div class="title">Macros</div>
+        <div class="title">Calorie calculator</div>
         
         <div class="input-group">
           <div class="custom-select" id="gender-select" style="flex: 1;">
@@ -300,7 +287,7 @@
               <div data-value="female">Female</div>
             </div>
           </div>
-          <input type="number" id="age" class="input-field" placeholder="Age" min="15" max="100" style="flex: 1;">
+          <input type="number" id="age" class="input-field" placeholder="Age" min="12" max="100" style="flex: 1;">
         </div>
         
         <div class="input-group">
@@ -321,7 +308,7 @@
         <div class="spacer"></div>
         <div id="error-msg">Please fill all fields</div>
         <button class="btn" onclick="calculate()">Calculate</button>
-        <div class="footer">Powered by templation.io</div>
+        <div class="footer">Powered by Templation.io</div>
       </div>
 
       <div class="view" id="view-result">
@@ -359,19 +346,17 @@
 
         <div class="spacer"></div>
         <button class="btn outline" onclick="showInput()">Recalculate</button>
-        <div class="footer">Powered by templation.io</div>
+        <div class="footer">Powered by Templation.io</div>
       </div>
 
     </div>
   </div>
 
   <script>
-    // --- VARIABLES (ПРАВИЛЬНЫЙ ПОРЯДОК, ЧТОБЫ ИЗБЕЖАТЬ ОШИБКИ) ---
-    let macroChartInstance = null; // Объявляем график до вызова любых функций
+    let macroChartInstance = null;
     let isLightMode = localStorage.getItem('notion-macro-theme') === 'light';
     const chartColors = { carbs: '#8A2BE2', protein: '#4169E1', fats: '#DA70D6' };
 
-    // --- THEME LOGIC ---
     function applyTheme() {
       document.body.classList.toggle('light-theme', isLightMode);
       document.getElementById('theme-btn').textContent = isLightMode ? '🌙' : '☀️';
@@ -389,7 +374,6 @@
       applyTheme();
     };
 
-    // --- CUSTOM SELECT LOGIC ---
     let selectedGender = 'male';
     let selectedActivity = 1.2;
 
@@ -398,7 +382,6 @@
       document.querySelectorAll(".select-selected").forEach(sel => sel.classList.remove("select-arrow-active"));
     }
 
-    // Закрываем меню при клике в любое другое место
     document.addEventListener("click", closeAllSelects);
 
     function setupCustomSelect(selectId, onSelectChange) {
@@ -408,9 +391,9 @@
       const options = itemsContainer.querySelectorAll('div');
 
       selectedDisplay.addEventListener('click', function(e) {
-        e.stopPropagation(); // Останавливаем клик, чтобы не сработал document.addEventListener
+        e.stopPropagation();
         const isHidden = itemsContainer.classList.contains('select-hide');
-        closeAllSelects(); // Закрываем остальные открытые списки
+        closeAllSelects();
         if (isHidden) {
           itemsContainer.classList.remove('select-hide');
           this.classList.add('select-arrow-active');
@@ -427,12 +410,10 @@
       });
     }
 
-    // Инициализация
     applyTheme();
     setupCustomSelect('gender-select', val => selectedGender = val);
     setupCustomSelect('activity-select', val => selectedActivity = parseFloat(val));
 
-    // --- CALCULATOR LOGIC ---
     let baseTDEE = 0;
     let currentGoal = 'maintain';
 
