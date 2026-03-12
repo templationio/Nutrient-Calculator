@@ -6,23 +6,19 @@
   <title>Calories Calculator</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
     :root {
       --bg-color: #191919;
       --text-color: #ffffff;
-      
       --card-bg: rgba(255, 255, 255, 0.04);
       --card-border: rgba(255, 255, 255, 0.1);
       --card-shadow: rgba(0, 0, 0, 0.2);
-      
       --input-bg: rgba(255, 255, 255, 0.05);
       --input-border: rgba(255, 255, 255, 0.12);
       --input-focus: rgba(255, 255, 255, 0.25);
-      
       --btn-bg: rgba(255, 255, 255, 0.1);
       --btn-hover: rgba(255, 255, 255, 0.15);
-      
       --dropdown-bg: rgba(30, 30, 30, 0.6);
       --blob-opacity: 0.5;
     }
@@ -30,18 +26,14 @@
     body.light-theme {
       --bg-color: #ffffff;
       --text-color: #37352f;
-      
       --card-bg: rgba(255, 255, 255, 0.5);
       --card-border: rgba(0, 0, 0, 0.08);
       --card-shadow: rgba(0, 0, 0, 0.06);
-      
       --input-bg: rgba(0, 0, 0, 0.03);
       --input-border: rgba(0, 0, 0, 0.08);
       --input-focus: rgba(0, 0, 0, 0.15);
-      
       --btn-bg: rgba(0, 0, 0, 0.05);
       --btn-hover: rgba(0, 0, 0, 0.08);
-      
       --dropdown-bg: rgba(255, 255, 255, 0.7);
       --blob-opacity: 0.3;
     }
@@ -159,12 +151,19 @@
     }
 
     .title {
-      font-size: 16px; font-weight: 600; text-transform: uppercase;
-      letter-spacing: 1.5px; text-align: center; margin-bottom: 24px; opacity: 0.9;
+      font-size: 20px; 
+      font-weight: 700; 
+      text-transform: uppercase;
+      letter-spacing: 1px; 
+      text-align: left; 
+      line-height: 1.25;
+      margin-top: -12px; 
+      margin-bottom: 32px; 
+      opacity: 0.9;
     }
 
     .input-group {
-      display: flex; gap: 12px; margin-bottom: 12px; width: 100%;
+      display: flex; gap: 16px; margin-bottom: 16px; width: 100%;
     }
     
     .input-field {
@@ -277,7 +276,7 @@
       <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
 
       <div class="view active" id="view-input">
-        <div class="title">Calorie calculator</div>
+        <div class="title">Calories<br>Calculator</div>
         
         <div class="input-group">
           <div class="custom-select" id="gender-select" style="flex: 1;">
@@ -295,7 +294,7 @@
           <input type="number" id="height" class="input-field" placeholder="Height (cm)">
         </div>
 
-        <div class="custom-select" id="activity-select" style="margin-bottom: 12px;">
+        <div class="custom-select" id="activity-select" style="margin-bottom: 16px;">
           <div class="select-selected">Sedentary (Office job)</div>
           <div class="select-items select-hide">
             <div data-value="1.2">Sedentary (Office job)</div>
