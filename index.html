@@ -12,10 +12,13 @@
     :root {
       --bg-color: #191919;
       --text-color: #ffffff;
+      
+      /* Card Glassmorphism */
       --card-bg: rgba(255, 255, 255, 0.04);
       --card-border: rgba(255, 255, 255, 0.1);
       --card-shadow: rgba(0, 0, 0, 0.2);
       
+      /* Inputs & Buttons */
       --input-bg: rgba(255, 255, 255, 0.05);
       --input-border: rgba(255, 255, 255, 0.12);
       --input-focus: rgba(255, 255, 255, 0.25);
@@ -23,7 +26,8 @@
       --btn-bg: rgba(255, 255, 255, 0.1);
       --btn-hover: rgba(255, 255, 255, 0.15);
       
-      --dropdown-bg: rgba(25, 25, 25, 0.85);
+      /* Dropdown Menu Glassmorphism */
+      --dropdown-bg: rgba(30, 30, 30, 0.6);
       --blob-opacity: 0.5;
     }
 
@@ -31,6 +35,7 @@
     body.light-theme {
       --bg-color: #ffffff;
       --text-color: #37352f;
+      
       --card-bg: rgba(255, 255, 255, 0.5);
       --card-border: rgba(0, 0, 0, 0.08);
       --card-shadow: rgba(0, 0, 0, 0.06);
@@ -42,7 +47,7 @@
       --btn-bg: rgba(0, 0, 0, 0.05);
       --btn-hover: rgba(0, 0, 0, 0.08);
       
-      --dropdown-bg: rgba(255, 255, 255, 0.85);
+      --dropdown-bg: rgba(255, 255, 255, 0.7);
       --blob-opacity: 0.3;
     }
 
@@ -74,8 +79,8 @@
     .card {
       position: relative; 
       background: var(--card-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       border: 1px solid var(--card-border);
       border-radius: 28px;
       width: 300px; 
@@ -187,7 +192,7 @@
     }
     input[type=number] { -moz-appearance: textfield; }
 
-    /* --- CUSTOM SELECT (FAKE DROPDOWN) --- */
+    /* --- CUSTOM SELECT (GLASSMORPHIC DROPDOWN) --- */
     .custom-select {
       position: relative;
       width: 100%;
@@ -208,9 +213,14 @@
     .select-selected:hover { background: var(--btn-hover); }
 
     .select-items {
-      position: absolute; background: var(--dropdown-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-      border: 1px solid var(--card-border); box-shadow: 0 8px 32px 0 var(--card-shadow);
+      position: absolute; 
+      background: var(--dropdown-bg); 
+      backdrop-filter: blur(30px); 
+      -webkit-backdrop-filter: blur(30px);
+      border: 1px solid var(--card-border); 
+      box-shadow: 0 8px 32px 0 var(--card-shadow);
       top: 100%; left: 0; right: 0; z-index: 99; border-radius: 14px; margin-top: 6px; overflow: hidden;
+      opacity: 1; transition: opacity 0.2s;
     }
     .select-items div {
       padding: 12px 14px; cursor: pointer; font-size: 13px;
@@ -218,7 +228,7 @@
     }
     .select-items div:last-child { border-bottom: none; }
     .select-items div:hover { background: var(--btn-hover); }
-    .select-hide { display: none; }
+    .select-hide { display: none; opacity: 0; }
 
     /* --- BUTTONS & FOOTER --- */
     .btn {
@@ -231,7 +241,7 @@
     .btn.outline { background: transparent; font-weight: 400; padding: 10px; border-color: transparent;}
     .btn.outline:hover { background: var(--input-bg); transform: none; box-shadow: none;}
 
-    .spacer { flex: 1; } /* Растягивает блок, опуская футер вниз */
+    .spacer { flex: 1; }
 
     .footer {
       font-size: 10px; font-weight: 300; opacity: 0.5; text-align: center;
@@ -243,7 +253,7 @@
       opacity: 0; transition: opacity 0.3s; pointer-events: none;
     }
 
-    /* --- RESULTS UI & LIQUID TABS --- */
+    /* --- RESULTS UI --- */
     .goal-tabs {
       display: flex; background: var(--input-bg); border-radius: 14px; padding: 6px; margin-bottom: 24px;
       position: relative; gap: 4px; border: 1px solid var(--input-border);
@@ -356,10 +366,12 @@
   </div>
 
   <script>
-    // --- THEME LOGIC ---
+    // --- VARIABLES (ПРАВИЛЬНЫЙ ПОРЯДОК, ЧТОБЫ ИЗБЕЖАТЬ ОШИБКИ) ---
+    let macroChartInstance = null; // Объявляем график до вызова любых функций
     let isLightMode = localStorage.getItem('notion-macro-theme') === 'light';
     const chartColors = { carbs: '#8A2BE2', protein: '#4169E1', fats: '#DA70D6' };
 
+    // --- THEME LOGIC ---
     function applyTheme() {
       document.body.classList.toggle('light-theme', isLightMode);
       document.getElementById('theme-btn').textContent = isLightMode ? '🌙' : '☀️';
@@ -376,11 +388,18 @@
       localStorage.setItem('notion-macro-theme', isLightMode ? 'light' : 'dark');
       applyTheme();
     };
-    applyTheme();
 
     // --- CUSTOM SELECT LOGIC ---
     let selectedGender = 'male';
     let selectedActivity = 1.2;
+
+    function closeAllSelects() {
+      document.querySelectorAll(".select-items").forEach(item => item.classList.add("select-hide"));
+      document.querySelectorAll(".select-selected").forEach(sel => sel.classList.remove("select-arrow-active"));
+    }
+
+    // Закрываем меню при клике в любое другое место
+    document.addEventListener("click", closeAllSelects);
 
     function setupCustomSelect(selectId, onSelectChange) {
       const container = document.getElementById(selectId);
@@ -389,41 +408,33 @@
       const options = itemsContainer.querySelectorAll('div');
 
       selectedDisplay.addEventListener('click', function(e) {
-        e.stopPropagation();
-        closeAllSelects(this);
-        itemsContainer.classList.toggle('select-hide');
-        this.classList.toggle('select-arrow-active');
+        e.stopPropagation(); // Останавливаем клик, чтобы не сработал document.addEventListener
+        const isHidden = itemsContainer.classList.contains('select-hide');
+        closeAllSelects(); // Закрываем остальные открытые списки
+        if (isHidden) {
+          itemsContainer.classList.remove('select-hide');
+          this.classList.add('select-arrow-active');
+        }
       });
 
       options.forEach(opt => {
         opt.addEventListener('click', function(e) {
+          e.stopPropagation();
           selectedDisplay.textContent = this.textContent;
           onSelectChange(this.getAttribute('data-value'));
-          selectedDisplay.click(); // close it
+          closeAllSelects();
         });
       });
     }
 
-    function closeAllSelects(excludeElement) {
-      const items = document.getElementsByClassName("select-items");
-      const selected = document.getElementsByClassName("select-selected");
-      for (let i = 0; i < items.length; i++) {
-        if (excludeElement !== selected[i]) {
-          items[i].classList.add("select-hide");
-          selected[i].classList.remove("select-arrow-active");
-        }
-      }
-    }
-    document.addEventListener("click", closeAllSelects);
-
-    // Initialize custom selects
+    // Инициализация
+    applyTheme();
     setupCustomSelect('gender-select', val => selectedGender = val);
     setupCustomSelect('activity-select', val => selectedActivity = parseFloat(val));
 
     // --- CALCULATOR LOGIC ---
     let baseTDEE = 0;
     let currentGoal = 'maintain';
-    let macroChartInstance = null;
 
     function showView(viewId) {
       document.querySelectorAll('.view').forEach(v => {
@@ -444,7 +455,6 @@
       const height = parseFloat(document.getElementById('height').value);
       const errorMsg = document.getElementById('error-msg');
 
-      // Встроенная валидация без alert()
       if (!age || !weight || !height) {
         errorMsg.style.opacity = '1';
         setTimeout(() => { errorMsg.style.opacity = '0'; }, 3000);
