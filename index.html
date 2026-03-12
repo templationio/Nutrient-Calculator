@@ -23,6 +23,7 @@
       --btn-bg: rgba(255, 255, 255, 0.1);
       --btn-hover: rgba(255, 255, 255, 0.15);
       
+      --dropdown-bg: rgba(25, 25, 25, 0.85);
       --blob-opacity: 0.5;
     }
 
@@ -41,6 +42,7 @@
       --btn-bg: rgba(0, 0, 0, 0.05);
       --btn-hover: rgba(0, 0, 0, 0.08);
       
+      --dropdown-bg: rgba(255, 255, 255, 0.85);
       --blob-opacity: 0.3;
     }
 
@@ -76,11 +78,10 @@
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid var(--card-border);
       border-radius: 28px;
-      width: 300px; /* Сделали шире для удобства */
-      min-height: 420px; /* Увеличили высоту для простора */
+      width: 300px; 
+      min-height: 440px; 
       box-shadow: 0 12px 40px 0 var(--card-shadow);
       transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-      overflow: hidden;
     }
 
     /* --- LIQUID BACKGROUND (INSIDE CARD) --- */
@@ -147,11 +148,10 @@
     .view {
       position: absolute;
       inset: 0;
-      padding: 56px 28px 24px; /* Улучшенные отступы */
+      padding: 56px 28px 24px; 
       display: flex;
       flex-direction: column;
       z-index: 1;
-      /* Плавные переходы для экранов */
       transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
       opacity: 0; pointer-events: none; transform: translateX(30px);
     }
@@ -171,6 +171,7 @@
     .input-group {
       display: flex; gap: 12px; margin-bottom: 12px; width: 100%;
     }
+    
     .input-field {
       width: 100%; background: var(--input-bg);
       border: 1px solid var(--input-border); color: var(--text-color);
@@ -180,36 +181,67 @@
     .input-field:focus { border-color: var(--input-focus); background: var(--btn-hover); box-shadow: 0 0 0 3px rgba(255,255,255,0.05); }
     .input-field::placeholder { color: var(--text-color); opacity: 0.4; }
     
-    /* Убираем стрелочки у чисел */
     input[type=number]::-webkit-inner-spin-button, 
     input[type=number]::-webkit-outer-spin-button { 
       -webkit-appearance: none; margin: 0; 
     }
     input[type=number] { -moz-appearance: textfield; }
 
-    /* Кастомная стрелочка для Select (белая для темной темы) */
-    select.input-field { 
-      appearance: none; cursor: pointer;
-      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E");
-      background-repeat: no-repeat;
-      background-position: right 14px top 50%;
-      background-size: 10px auto;
-      padding-right: 30px;
+    /* --- CUSTOM SELECT (FAKE DROPDOWN) --- */
+    .custom-select {
+      position: relative;
+      width: 100%;
     }
-    /* Темная стрелочка для светлой темы */
-    body.light-theme select.input-field {
-       background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2337352f%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    .select-selected {
+      background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-color);
+      padding: 12px 14px; border-radius: 14px; font-size: 13px; cursor: pointer; user-select: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
     }
-    
+    .select-selected::after {
+      content: ""; position: absolute; right: 14px; top: 16px;
+      border: 5px solid transparent; border-color: var(--text-color) transparent transparent transparent; opacity: 0.5;
+    }
+    .select-selected.select-arrow-active::after {
+      top: 11px; border-color: transparent transparent var(--text-color) transparent;
+    }
+    .select-selected:hover { background: var(--btn-hover); }
+
+    .select-items {
+      position: absolute; background: var(--dropdown-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--card-border); box-shadow: 0 8px 32px 0 var(--card-shadow);
+      top: 100%; left: 0; right: 0; z-index: 99; border-radius: 14px; margin-top: 6px; overflow: hidden;
+    }
+    .select-items div {
+      padding: 12px 14px; cursor: pointer; font-size: 13px;
+      border-bottom: 1px solid var(--input-border); transition: background 0.2s;
+    }
+    .select-items div:last-child { border-bottom: none; }
+    .select-items div:hover { background: var(--btn-hover); }
+    .select-hide { display: none; }
+
+    /* --- BUTTONS & FOOTER --- */
     .btn {
       width: 100%; background: var(--btn-bg); border: 1px solid var(--input-border);
       color: var(--text-color); padding: 14px; border-radius: 14px;
       font-family: inherit; font-size: 14px; font-weight: 600;
-      cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); margin-top: auto;
+      cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .btn:hover { background: var(--btn-hover); transform: translateY(-2px); box-shadow: 0 4px 12px var(--card-shadow); }
-    .btn.outline { background: transparent; font-weight: 400; padding: 10px; margin-top: 14px; border-color: transparent;}
+    .btn.outline { background: transparent; font-weight: 400; padding: 10px; border-color: transparent;}
     .btn.outline:hover { background: var(--input-bg); transform: none; box-shadow: none;}
+
+    .spacer { flex: 1; } /* Растягивает блок, опуская футер вниз */
+
+    .footer {
+      font-size: 10px; font-weight: 300; opacity: 0.5; text-align: center;
+      margin-top: 16px; transition: opacity 0.3s ease; position: relative;
+    }
+
+    #error-msg {
+      color: #ff6b6b; font-size: 12px; text-align: center; margin-bottom: 12px;
+      opacity: 0; transition: opacity 0.3s; pointer-events: none;
+    }
 
     /* --- RESULTS UI & LIQUID TABS --- */
     .goal-tabs {
@@ -218,34 +250,21 @@
     }
     .goal-tab {
       flex: 1; text-align: center; padding: 8px 0; font-size: 12px; font-weight: 500;
-      cursor: pointer; border-radius: 10px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0.6;
-      z-index: 1; position: relative;
+      cursor: pointer; border-radius: 10px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0.6; z-index: 1;
     }
     .goal-tab:hover { opacity: 0.9; }
     .goal-tab.active { background: var(--btn-bg); opacity: 1; box-shadow: 0 4px 12px var(--card-shadow); border: 1px solid var(--input-focus); }
 
-    .chart-container {
-      position: relative; width: 150px; height: 150px; margin: 0 auto 20px;
-    }
-    .chart-center-text {
-      position: absolute; inset: 0; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; pointer-events: none;
-    }
+    .chart-container { position: relative; width: 150px; height: 150px; margin: 0 auto 20px; }
+    .chart-center-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
     .cal-number { font-size: 28px; font-weight: 600; line-height: 1; transition: all 0.3s ease; }
     .cal-label { font-size: 11px; opacity: 0.6; margin-top: 6px; font-weight: 500; letter-spacing: 0.5px;}
 
-    .macros-legend {
-      display: flex; justify-content: space-between; margin-bottom: 10px; padding: 0 10px;
-    }
+    .macros-legend { display: flex; justify-content: space-between; margin-bottom: 10px; padding: 0 10px; }
     .macro-item { display: flex; flex-direction: column; align-items: center; }
     .macro-dot { width: 10px; height: 10px; border-radius: 50%; margin-bottom: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);}
     .macro-val { font-size: 13px; font-weight: 600; transition: all 0.3s ease;}
     .macro-name { font-size: 11px; opacity: 0.6; }
-
-    .footer {
-      font-size: 10px; font-weight: 300; opacity: 0.5; text-align: center;
-      position: absolute; bottom: 20px; left: 0; right: 0; transition: opacity 0.3s ease;
-    }
   </style>
 </head>
 <body>
@@ -264,11 +283,14 @@
         <div class="title">Macros</div>
         
         <div class="input-group">
-          <select id="gender" class="input-field">
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-          </select>
-          <input type="number" id="age" class="input-field" placeholder="Age" min="15" max="100">
+          <div class="custom-select" id="gender-select" style="flex: 1;">
+            <div class="select-selected">Male</div>
+            <div class="select-items select-hide">
+              <div data-value="male">Male</div>
+              <div data-value="female">Female</div>
+            </div>
+          </div>
+          <input type="number" id="age" class="input-field" placeholder="Age" min="15" max="100" style="flex: 1;">
         </div>
         
         <div class="input-group">
@@ -276,19 +298,23 @@
           <input type="number" id="height" class="input-field" placeholder="Height (cm)">
         </div>
 
-        <select id="activity" class="input-field" style="margin-bottom: 24px;">
-          <option value="1.2">Sedentary (Office job)</option>
-          <option value="1.375">Light Exercise (1-2 days/wk)</option>
-          <option value="1.55">Moderate (3-5 days/wk)</option>
-          <option value="1.725">Active (6-7 days/wk)</option>
-        </select>
+        <div class="custom-select" id="activity-select" style="margin-bottom: 12px;">
+          <div class="select-selected">Sedentary (Office job)</div>
+          <div class="select-items select-hide">
+            <div data-value="1.2">Sedentary (Office job)</div>
+            <div data-value="1.375">Light Exercise (1-2 days/wk)</div>
+            <div data-value="1.55">Moderate (3-5 days/wk)</div>
+            <div data-value="1.725">Active (6-7 days/wk)</div>
+          </div>
+        </div>
 
+        <div class="spacer"></div>
+        <div id="error-msg">Please fill all fields</div>
         <button class="btn" onclick="calculate()">Calculate</button>
         <div class="footer">Powered by templation.io</div>
       </div>
 
       <div class="view" id="view-result">
-        
         <div class="goal-tabs">
           <div class="goal-tab" id="tab-loss" onclick="setGoal('loss')">Loss</div>
           <div class="goal-tab active" id="tab-maintain" onclick="setGoal('maintain')">Maintain</div>
@@ -321,8 +347,9 @@
           </div>
         </div>
 
+        <div class="spacer"></div>
         <button class="btn outline" onclick="showInput()">Recalculate</button>
-        <div class="footer" style="bottom: 14px;">Powered by templation.io</div>
+        <div class="footer">Powered by templation.io</div>
       </div>
 
     </div>
@@ -331,16 +358,11 @@
   <script>
     // --- THEME LOGIC ---
     let isLightMode = localStorage.getItem('notion-macro-theme') === 'light';
-    const chartColors = {
-      carbs: '#8A2BE2', 
-      protein: '#4169E1', 
-      fats: '#DA70D6' 
-    };
+    const chartColors = { carbs: '#8A2BE2', protein: '#4169E1', fats: '#DA70D6' };
 
     function applyTheme() {
       document.body.classList.toggle('light-theme', isLightMode);
       document.getElementById('theme-btn').textContent = isLightMode ? '🌙' : '☀️';
-      // Перерисовка шрифта графика при смене темы
       if (macroChartInstance) {
         macroChartInstance.options.plugins.tooltip.backgroundColor = isLightMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.8)';
         macroChartInstance.options.plugins.tooltip.titleColor = isLightMode ? '#000' : '#fff';
@@ -356,6 +378,48 @@
     };
     applyTheme();
 
+    // --- CUSTOM SELECT LOGIC ---
+    let selectedGender = 'male';
+    let selectedActivity = 1.2;
+
+    function setupCustomSelect(selectId, onSelectChange) {
+      const container = document.getElementById(selectId);
+      const selectedDisplay = container.querySelector('.select-selected');
+      const itemsContainer = container.querySelector('.select-items');
+      const options = itemsContainer.querySelectorAll('div');
+
+      selectedDisplay.addEventListener('click', function(e) {
+        e.stopPropagation();
+        closeAllSelects(this);
+        itemsContainer.classList.toggle('select-hide');
+        this.classList.toggle('select-arrow-active');
+      });
+
+      options.forEach(opt => {
+        opt.addEventListener('click', function(e) {
+          selectedDisplay.textContent = this.textContent;
+          onSelectChange(this.getAttribute('data-value'));
+          selectedDisplay.click(); // close it
+        });
+      });
+    }
+
+    function closeAllSelects(excludeElement) {
+      const items = document.getElementsByClassName("select-items");
+      const selected = document.getElementsByClassName("select-selected");
+      for (let i = 0; i < items.length; i++) {
+        if (excludeElement !== selected[i]) {
+          items[i].classList.add("select-hide");
+          selected[i].classList.remove("select-arrow-active");
+        }
+      }
+    }
+    document.addEventListener("click", closeAllSelects);
+
+    // Initialize custom selects
+    setupCustomSelect('gender-select', val => selectedGender = val);
+    setupCustomSelect('activity-select', val => selectedActivity = parseFloat(val));
+
     // --- CALCULATOR LOGIC ---
     let baseTDEE = 0;
     let currentGoal = 'maintain';
@@ -366,7 +430,6 @@
         v.classList.remove('active', 'previous');
         if (v.id !== viewId) v.classList.add('previous');
       });
-      // Небольшая задержка для плавности отрисовки
       setTimeout(() => {
         document.getElementById(viewId).classList.add('active');
         document.getElementById(viewId).classList.remove('previous');
@@ -379,18 +442,20 @@
       const age = parseFloat(document.getElementById('age').value);
       const weight = parseFloat(document.getElementById('weight').value);
       const height = parseFloat(document.getElementById('height').value);
-      const gender = document.getElementById('gender').value;
-      const activity = parseFloat(document.getElementById('activity').value);
+      const errorMsg = document.getElementById('error-msg');
 
+      // Встроенная валидация без alert()
       if (!age || !weight || !height) {
-        alert("Please fill in age, weight, and height.");
+        errorMsg.style.opacity = '1';
+        setTimeout(() => { errorMsg.style.opacity = '0'; }, 3000);
         return;
       }
+      errorMsg.style.opacity = '0';
 
       let bmr = (10 * weight) + (6.25 * height) - (5 * age);
-      bmr += (gender === 'male') ? 5 : -161;
+      bmr += (selectedGender === 'male') ? 5 : -161;
       
-      baseTDEE = Math.round(bmr * activity);
+      baseTDEE = Math.round(bmr * selectedActivity);
       
       setGoal('maintain'); 
       showView('view-result');
@@ -450,24 +515,15 @@
           responsive: true,
           maintainAspectRatio: false,
           cutout: '78%', 
-          animation: {
-            animateScale: true,
-            animateRotate: true,
-            duration: 1200,
-            easing: 'easeOutQuart'
-          },
+          animation: { animateScale: true, animateRotate: true, duration: 1200, easing: 'easeOutQuart' },
           plugins: {
             legend: { display: false }, 
             tooltip: {
               backgroundColor: isLightMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.8)',
               titleColor: isLightMode ? '#000' : '#fff',
               bodyColor: isLightMode ? '#000' : '#fff',
-              padding: 12,
-              cornerRadius: 8,
-              displayColors: true,
-              callbacks: {
-                label: function(context) { return ` ${context.label}: ${context.raw}g`; }
-              }
+              padding: 12, cornerRadius: 8, displayColors: true,
+              callbacks: { label: function(context) { return ` ${context.label}: ${context.raw}g`; } }
             }
           }
         }
